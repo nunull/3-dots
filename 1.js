@@ -1,12 +1,9 @@
-/*
-   empty machine example
-*/
-
 var flatlandConfig = {
     // server: "http://localhost:3000",
     server: "https://flatland.earth",
-    land: 'default',
+    land: '3-dots',
     updateIntervall: 40,
+    spawnIntervall: 1000,
     debug: true,
     clearscreen: true,
     backgroundcolor: [255, 255, 255],
@@ -16,103 +13,111 @@ var flatlandConfig = {
 var machineConfig = {
     name: 'empty-machine-example',
     maxCount: 3,
-    minSize: 20,
+    minSize: 10,
     maxSize: 30,
-    lifetime: 20000,
+    lifetime: 8000,
     color1: [255, 0, 255],
     color1Opacity: 0.1,
     color2: [0, 255, 255],
     color2Opacity: 0.1,
-    pendown: true
+    pendown: false
 
 }
 
-
-
-// ---------------------------------------------------------------
 class Machine extends defaultMachine {
     setup() {
-        // initialize your machine
-        this.type = MachineType.CIRCLE;
-    }
-    move() {
-        this.color1 = color(0, 0, 0);
-        // this.pos.x = random(-width / 2, width / 2);
-        this.pos.x = 0;
-        this.pos.y = 0;
-        /*
-        for (remotemachine of flatland.machinesRemote) {
-            if (dist(this.pos.x, this.pos.y, remotemachine.pos.x, remotemachine.pos.y) < 100) {
-                // mir kommt ein fremder bot zu nahme. ich haue ab
-                this.pos.x = this.pos.x + random(-100, 100);
-                this.pos.y = this.pos.y + random(-100, 100);
-            }
+        this.setType(MachineType.CIRCLE);
+        this.setFill(0, 0, 0);
+        this.setStroke(0, 0, 0);
+        this.setPosition(random(-width/2, width/2), random(-width/2, width/2)); // go to random pos;
 
+        const maxVelocity = 5;
+        this.velocity = createVector(random(-maxVelocity, maxVelocity), random(-maxVelocity, maxVelocity))
+
+        this.osc = new p5.Oscillator('sine');
+        this.modOsc = new p5.Oscillator('sine');
+        
+        this.osc.freq(1);        
+
+        reverb.process(this.osc, 2, 2);
+        // this.osc.disconnect();
+        this.modOsc.disconnect();
+
+        this.osc.start();
+        this.modOsc.start();
+
+        this.audioRoutingSetUp = false;
+        
+        const maxWaveVelocity = 4;
+        this.waves = []
+        for (let i = 0; i < 3; i++) {
+          this.waves.push({
+            time: createVector(random(0.001, 0.01), random(0.001, 0.01)),
+            amount: createVector(random(-maxWaveVelocity, maxWaveVelocity), random(-maxWaveVelocity, maxWaveVelocity))
+          });
         }
-        */
-        // how does your machine move 
+
+
+    }
+
+    move() {
+        if (!this.audioRoutingSetUp && flatland.machinesLocal.length > 1) {
+            const index = flatland.machinesLocal.indexOf(this);
+            const nextIndex = (index + 1) % flatland.machinesLocal.length;
+            const nextMachine = flatland.machinesLocal[nextIndex];
+
+            nextMachine.osc.freq(this.modOsc);
+            
+            this.audioRoutingSetUp = true;
+        }
+
+        let wavevel = createVector(0, 0);
+        
+        for (let wave of this.waves) {
+          wavevel.x += sin(millis()*wave.time.x)*wave.amount.x;
+          wavevel.y += sin(millis()*wave.time.y)*wave.amount.y;
+        }
+
+        this.setPosition(
+            constrain(this.pos.x + wavevel.x + this.velocity.x, -width/2, width/2),
+            constrain(this.pos.y + wavevel.y + this.velocity.y, -height/2, height/2));
+
+        if (this.pos.x <= -width/2 || this.pos.x >= width/2) this.velocity.x *= -1;
+        if (this.pos.y <= -height/2 || this.pos.y >= height/2) this.velocity.y *= -1;
+
+
+
+        let d = 0;
+        for (let machine of flatland.machinesLocal) {
+            d += dist(this.pos.x, this.pos.y, machine.pos.x, machine.pos.y);
+        }
+
+        var amp = constrain(map(d, width*1.5, 0, 0, 1), 0, 1);
+
+        this.modOsc.freq(d/2, 0.1);
+        this.modOsc.amp(amp*800, 0.1);
+        this.osc.amp(amp*0.2, 0.1);
     }
 }
-// --------------------------------------------------------------
 
 
 
 
-
-
-
-
-//let socket
 let gui;
 let flatland;
-
+let reverb;
 
 function setup() {
+    reverb = new p5.Reverb();
+    reverb.amp(3);
+
     createCanvas(windowWidth, windowHeight, WEBGL);
-    flatland = new Flatland(); // connect to the flatland server
+    flatland = new Flatland();
     initGui();
-    frameRate(100);
     initSocketIO(flatlandConfig.server);
-    gravitation = createVector(0, 0);
 }
 
 
 function draw() {
-    flatland.update(); // update + draw flatland
-}
-
-
-
-function initGui() {
-    gui = new dat.GUI();
-
-    let guiFlatlandFolder = gui.addFolder('flatlandConfig');
-    guiFlatlandFolder.add(flatlandConfig, 'server');
-    guiFlatlandFolder.add(flatlandConfig, 'debug');
-    guiFlatlandFolder.add(flatlandConfig, 'updateIntervall', 1, 250);
-    guiFlatlandFolder.addColor(flatlandConfig, 'backgroundcolor');
-    guiFlatlandFolder.add(flatlandConfig, 'backgroundblend', 0.0, 1.0);
-    guiFlatlandFolder.add(flatlandConfig, 'clearscreen');
-    guiFlatlandFolder.open();
-
-    let guiMachineFolder = gui.addFolder("machineConfig");
-
-    guiMachineFolder.add(machineConfig, 'name');
-    guiMachineFolder.add(machineConfig, 'maxCount', 3, 3);
-    guiMachineFolder.add(machineConfig, "minSize", 1, 200);
-    guiMachineFolder.add(machineConfig, "maxSize", 1, 200);
-    guiMachineFolder.add(machineConfig, "lifetime", 1, 20000);
-    guiMachineFolder.addColor(machineConfig, 'color1');
-    guiMachineFolder.add(machineConfig, 'color1Opacity', 0, 1);
-    guiMachineFolder.addColor(machineConfig, 'color2');
-    guiMachineFolder.add(machineConfig, 'color2Opacity', 0.0, 1.0);
-    guiMachineFolder.add(machineConfig, 'pendown');
-    guiMachineFolder.open();
-}
-
-/*
-make p5js responsive 
-*/
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+    flatland.update();
 }
