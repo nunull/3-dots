@@ -40,24 +40,12 @@ class Machine extends defaultMachine {
         this.osc.freq(1);        
 
         reverb.process(this.osc, 2, 2);
-        // this.osc.disconnect();
         this.modOsc.disconnect();
 
         this.osc.start();
         this.modOsc.start();
 
         this.audioRoutingSetUp = false;
-        
-        const maxWaveVelocity = 4;
-        this.waves = []
-        for (let i = 0; i < 3; i++) {
-          this.waves.push({
-            time: createVector(random(0.001, 0.01), random(0.001, 0.01)),
-            amount: createVector(random(-maxWaveVelocity, maxWaveVelocity), random(-maxWaveVelocity, maxWaveVelocity))
-          });
-        }
-
-
     }
 
     move() {
@@ -71,16 +59,9 @@ class Machine extends defaultMachine {
             this.audioRoutingSetUp = true;
         }
 
-        let wavevel = createVector(0, 0);
-        
-        for (let wave of this.waves) {
-          wavevel.x += sin(millis()*wave.time.x)*wave.amount.x;
-          wavevel.y += sin(millis()*wave.time.y)*wave.amount.y;
-        }
-
         this.setPosition(
-            constrain(this.pos.x + wavevel.x + this.velocity.x, -width/2, width/2),
-            constrain(this.pos.y + wavevel.y + this.velocity.y, -height/2, height/2));
+            constrain(this.pos.x + this.velocity.x, -width/2, width/2),
+            constrain(this.pos.y + this.velocity.y, -height/2, height/2));
 
         if (this.pos.x <= -width/2 || this.pos.x >= width/2) this.velocity.x *= -1;
         if (this.pos.y <= -height/2 || this.pos.y >= height/2) this.velocity.y *= -1;
