@@ -78,7 +78,16 @@ class Machine extends defaultMachine {
         this.modOsc.freq(d/2, 0.1);
         this.modOsc.amp(amp*800, 0.1);
         this.osc.amp(amp*0.2, 0.1);
-    }
+
+        // generate grayscale depending from amplitude
+        var grayscale = int(map(amp, 0, 1, 0, 40));
+        // generate transparency depending from amplitude
+        var transparency = int(map(amp, 0, 1, 40, 0));
+
+        this.setFill(this.grayscale, this.transparency);
+        this.setStroke(this.grayscale);
+
+}
 }
 
 
