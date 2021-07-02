@@ -15,7 +15,7 @@ var machineConfig = {
     maxCount: 3,
     minSize: 10,
     maxSize: 30,
-    lifetime: 8000,
+    lifetime: 20000,
     color1: [255, 0, 255],
     color1Opacity: 0.1,
     color2: [0, 255, 255],
@@ -29,7 +29,7 @@ class Machine extends defaultMachine {
         this.setType(MachineType.CIRCLE);
         this.setFill(0, 0, 0);
         this.setStroke(0, 0, 0);
-        this.setPosition(random(-width/2, width/2), random(-width/2, width/2)); // go to random pos;
+        this.setPosition(random(-width/2, width/2), random(-height/2, height/2)); // go to random pos;
 
         const maxVelocity = 5;
         this.velocity = createVector(random(-maxVelocity, maxVelocity), random(-maxVelocity, maxVelocity))
@@ -61,12 +61,19 @@ class Machine extends defaultMachine {
             this.audioRoutingSetUp = true;
         }
 
-        this.setPosition(
-            constrain(this.pos.x + this.velocity.x, 0, width),
-            constrain(this.pos.y + this.velocity.y, 0, height));
+        // this.setPosition(
+        //     constrain(this.pos.x + this.velocity.x, 0, width),
+        //     constrain(this.pos.y + this.velocity.y, 0, height));
 
-        if (this.pos.x <= 0 || this.pos.x >= width) this.velocity.x *= -1;
-        if (this.pos.y <= 0 || this.pos.y >= height) this.velocity.y *= -1;
+        // if (this.pos.x <= 0 || this.pos.x >= width) this.velocity.x *= -1;
+        // if (this.pos.y <= 0 || this.pos.y >= height) this.velocity.y *= -1;
+
+        this.setPosition(
+            constrain(this.pos.x + this.velocity.x, -width/2, width/2),
+            constrain(this.pos.y + this.velocity.y, -height/2, height/2));
+
+        if (this.pos.x <= -width/2 || this.pos.x >= width/2) this.velocity.x *= -1;
+        if (this.pos.y <= -height/2 || this.pos.y >= height/2) this.velocity.y *= -1;
 
         console.log("this.pos.x =" + this.pos.x);
         //console.log();
@@ -91,7 +98,10 @@ class Machine extends defaultMachine {
         this.setFill(grayscale, grayscale, grayscale, transparency);
         this.setStroke(grayscale, grayscale, grayscale, transparency);
 
-        previous[int(this.pos.x)][int(this.pos.y)] = 500;
+        var waveX = int(map(this.pos.x, -width/2, width/2, 0, width));
+        var waveY = int(map(this.pos.y, -height/2, height/2, 0, height));
+
+        previous[waveX][waveY] = 500;
 }
 }
 
@@ -134,7 +144,10 @@ function setup() {
 
 
 function draw() {
+    push();
+    translate(width/2, height/2);
     flatland.update();
+    pop();
 
     loadPixels();
     for (let i = 1; i < cols - 1; i++) {
