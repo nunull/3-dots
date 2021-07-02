@@ -46,6 +46,8 @@ class Machine extends defaultMachine {
         this.modOsc.start();
 
         this.audioRoutingSetUp = false;
+
+       
     }
 
     move() {
@@ -60,33 +62,36 @@ class Machine extends defaultMachine {
         }
 
         this.setPosition(
-            constrain(this.pos.x + this.velocity.x, -width/2, width/2),
-            constrain(this.pos.y + this.velocity.y, -height/2, height/2));
+            constrain(this.pos.x + this.velocity.x, 0, width),
+            constrain(this.pos.y + this.velocity.y, 0, height));
 
-        if (this.pos.x <= -width/2 || this.pos.x >= width/2) this.velocity.x *= -1;
-        if (this.pos.y <= -height/2 || this.pos.y >= height/2) this.velocity.y *= -1;
+        if (this.pos.x <= 0 || this.pos.x >= width) this.velocity.x *= -1;
+        if (this.pos.y <= 0 || this.pos.y >= height) this.velocity.y *= -1;
 
+        console.log("this.pos.x =" + this.pos.x);
+        //console.log();
 
 
         let d = 0;
         for (let machine of flatland.machinesLocal) {
-            d += dist(this.pos.x, this.pos.y, machine.pos.x, machine.pos.y);
+            d += abs(dist(this.pos.x, this.pos.y, machine.pos.x, machine.pos.y))+1;
         }
 
         var amp = constrain(map(d, width*1.5, 0, 0, 1), 0, 1);
-
+        console.log("d =" + d);
         this.modOsc.freq(d/2, 0.1);
         this.modOsc.amp(amp*800, 0.1);
         this.osc.amp(amp*0.2, 0.1);
 
         // generate grayscale depending from amplitude
-        var grayscale = int(map(amp, 0, 1, 0, 40));
+        var grayscale = int(map(amp, 0, 1, 0, 255));
         // generate transparency depending from amplitude
-        var transparency = int(map(amp, 0, 1, 40, 0));
+        var transparency = int(map(amp, 0, 1, 255, 0));
 
-        this.setFill(this.grayscale, this.transparency);
-        this.setStroke(this.grayscale);
+        this.setFill(grayscale, grayscale, grayscale, transparency);
+        this.setStroke(grayscale, grayscale, grayscale, transparency);
 
+        previous[int(this.pos.x)][int(this.pos.y)] = 500;
 }
 }
 
@@ -97,17 +102,64 @@ let gui;
 let flatland;
 let reverb;
 
+let cols;
+let rows;
+let current;
+let previous;
+let dampening = 0.99;
+
 function setup() {
     reverb = new p5.Reverb();
     reverb.amp(3);
+    
+    pixelDensity(1);
+    createCanvas(windowWidth, windowHeight);
 
-    createCanvas(windowWidth, windowHeight, WEBGL);
+ 
+    //wasser setup
+    //createCanvas(600, 400);
+    cols = windowWidth;
+    rows = windowHeight;
+
+    current = new Array(cols).fill(0).map(n => new Array(rows).fill(0));
+    previous = new Array(cols).fill(0).map(n => new Array(rows).fill(0));
+
+
+
     flatland = new Flatland();
     initGui();
     initSocketIO(flatlandConfig.server);
+
 }
 
 
 function draw() {
     flatland.update();
+
+    loadPixels();
+    for (let i = 1; i < cols - 1; i++) {
+      for (let j = 1; j < rows - 1; j++) {
+        current[i][j] =
+          (previous[i - 1][j] +
+            previous[i + 1][j] +
+            previous[i][j - 1] +
+            previous[i][j + 1]) /
+            2 -
+          current[i][j];
+        current[i][j] = current[i][j] * dampening;
+        
+        let index = (i + j * cols) * 4;
+        pixels[index + 0] = current[i][j]+pixels[index];
+        pixels[index + 1] = current[i][j]+pixels[index+1];
+        pixels[index + 2] = current[i][j]+pixels[index+2];
+      }
+    }
+    updatePixels();
+  
+
 }
+/*
+function mouseDragged() {
+    previous[this.pos.x][this.pos.y] = 38500;
+  }
+  */
