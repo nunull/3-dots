@@ -98,10 +98,11 @@ class Machine extends defaultMachine {
         this.setFill(grayscale, grayscale, grayscale, transparency);
         this.setStroke(grayscale, grayscale, grayscale, transparency);
 
-        var waveX = int(map(this.pos.x, -width/2, width/2, 0, width));
-        var waveY = int(map(this.pos.y, -height/2, height/2, 0, height));
+        var waveX = int(map(this.pos.x, -width/2, width/2, 0, width-1));
+        console.log("waveX = " + waveX);
+        var waveY = int(map(this.pos.y, -height/2, height/2, 0, height-1));
 
-        previous[waveX][waveY] = 500;
+        previous[waveX][waveY] = 38500;
 }
 }
 
@@ -156,9 +157,7 @@ function draw() {
           (previous[i - 1][j] +
             previous[i + 1][j] +
             previous[i][j - 1] +
-            previous[i][j + 1]) /
-            2 -
-          current[i][j];
+            previous[i][j + 1]) / 2 - current[i][j];
         current[i][j] = current[i][j] * dampening;
         
         let index = (i + j * cols) * 4;
@@ -168,6 +167,11 @@ function draw() {
       }
     }
     updatePixels();
+
+
+    let temp = previous;
+    previous = current;
+    current = temp;
   
 
 }
