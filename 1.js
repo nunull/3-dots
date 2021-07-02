@@ -24,6 +24,19 @@ var machineConfig = {
 
 }
 
+/*
+To Do
+a)
+Bewegung der Bots verändern: sich abwechselndes System von Anziehung und Abstoßung
+bei Berührung kurze Interaktion (Vibration/Schwingung)
+Sound aufbessern
+Reverb automatisieren
+
+b)
+Timms System miteinbinden/weitere Implementierung erstellen
+
+*/ 
+
 class Machine extends defaultMachine {
     setup() {
         this.setType(MachineType.CIRCLE);
