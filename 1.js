@@ -6,7 +6,7 @@ var flatlandConfig = {
     spawnIntervall: 1000,
     debug: true,
     clearscreen: true,
-    backgroundcolor: [255, 255, 255],
+    backgroundcolor: [13, 19, 73], // schönes blau: 13, 19, 73
     backgroundblend: 0.5
 }
 
@@ -80,11 +80,13 @@ class Machine extends defaultMachine {
 
 
         let d = 0;
-        for (let machine of flatland.machinesLocal) {
-            d += abs(dist(this.pos.x, this.pos.y, machine.pos.x, machine.pos.y))+1;
-        }
+        var index = flatland.machinesLocal.indexOf(this);
+        var next = flatland.machinesLocal[(index+1)%flatland.machinesLocal.length];
+        
+        d = int(abs(dist(this.pos.x, this.pos.y, next.pos.x, next.pos.y)));
+        d = d%100+1;
 
-        var amp = constrain(map(d, width*1.5, 0, 0, 1), 0, 1);
+        var amp = constrain(map(d, 100, 0, 0, 1), 0, 1);
         console.log("d =" + d);
         this.modOsc.freq(d/2, 0.1);
         this.modOsc.amp(amp*800, 0.1);
@@ -93,16 +95,18 @@ class Machine extends defaultMachine {
         // generate grayscale depending from amplitude
         var grayscale = int(map(amp, 0, 1, 0, 255));
         // generate transparency depending from amplitude
-        var transparency = int(map(amp, 0, 1, 255, 0));
+        var transparency = int(map(amp, 0, 1, 0, 255));
 
-        this.setFill(grayscale, grayscale, grayscale, transparency);
-        this.setStroke(grayscale, grayscale, grayscale, transparency);
+        //this.setFill(grayscale*88, grayscale*156, grayscale*168, transparency); //88, 156, 168
+        this.setFill(88, 156, 168, transparency); //88, 156, 168
+        
+        this.setStroke(88, 156, 168, transparency);
 
         var waveX = int(map(this.pos.x, -width/2, width/2, 0, width-1));
         console.log("waveX = " + waveX);
         var waveY = int(map(this.pos.y, -height/2, height/2, 0, height-1));
 
-        previous[waveX][waveY] = 38500;
+        previous[waveX][waveY] = 1000; //1000 ist cool
 }
 }
 
