@@ -45,7 +45,7 @@ class Machine extends defaultMachine {
         this.setPosition(random(-width/2, width/2), random(-height/2, height/2)); // go to random pos;
 
         const maxVelocity = 5;
-        this.velocity = createVector(random(-maxVelocity, maxVelocity), random(-maxVelocity, maxVelocity))
+        this.velocity = createVector(0, 0)
 
         this.osc = new p5.Oscillator('sine');
         this.modOsc = new p5.Oscillator('sine');
