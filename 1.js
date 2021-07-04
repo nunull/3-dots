@@ -50,7 +50,7 @@ class Machine extends defaultMachine {
         this.osc = new p5.Oscillator('sine');
         this.modOsc = new p5.Oscillator('sine');
         
-        this.osc.freq(1);        
+        this.osc.freq(440);        
 
         reverb.process(this.osc, 2, 2);
         this.modOsc.disconnect();
@@ -109,9 +109,9 @@ class Machine extends defaultMachine {
         d = d%100+1;
 
         var amp = constrain(map(d, 100, 0, 0, 1), 0, 1);
-        console.log("d =" + d);
+        // console.log("d =" + d);
         this.modOsc.freq(d/2, 0.1);
-        this.modOsc.amp(amp*800, 0.1);
+        this.modOsc.amp(amp*modulationDepth, 0.1);
         this.osc.amp(amp*0.2, 0.1);
 
         // generate grayscale depending from amplitude
@@ -125,11 +125,18 @@ class Machine extends defaultMachine {
         this.setStroke(88, 156, 168, transparency);
 
         var waveX = int(map(this.pos.x, -width/2, width/2, 0, width-1));
-        console.log("waveX = " + waveX);
+        // console.log("waveX = " + waveX);
         var waveY = int(map(this.pos.y, -height/2, height/2, 0, height-1));
 
         previous[waveX][waveY] = 1000; //1000 ist cool
-}
+    }
+
+    onFinish() {
+        console.log('onFinish');
+
+        this.osc.amp(0, 0.1);
+        
+    }
 }
 
 
@@ -159,6 +166,8 @@ let current;
 let previous;
 let dampening = 0.99;
 
+let modulationDepth = 80;
+
 let forces = [];
 
 function setup() {
@@ -184,13 +193,25 @@ function setup() {
     initSocketIO(flatlandConfig.server);
 
 
-    forces.push(new Atractor(createVector(0, 0)));
-    forces.push(new Atractor(createVector(100, 200)));
+    // forces.push(new Atractor(createVector(0, 0)));
+    // forces.push(new Atractor(createVector(100, 200)));
 
 }
 
+let lastAtractorAdded = 0;
 
 function draw() {
+    if (millis() - lastAtractorAdded >= random(6000, 10000)) {
+        forces.push(new Atractor(createVector(random(-width/2, width/2), random(-height/2, height/2))));
+        lastAtractorAdded = millis();
+
+        modulationDepth = random(10, 1000);
+
+        for(let machine of flatland.machinesLocal) {
+            machine.osc.freq(random(1, 800));
+        } 
+    }
+
     push();
     translate(width/2, height/2);
     flatland.update();
@@ -221,6 +242,11 @@ function draw() {
   
 
 }
+
+function mousePressed() {
+    userStartAudio();
+}
+
 /*
 function mouseDragged() {
     previous[this.pos.x][this.pos.y] = 38500;
