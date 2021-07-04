@@ -3,7 +3,7 @@ var flatlandConfig = {
     server: "https://flatland.earth",
     land: '3-dots',
     updateIntervall: 40,
-    spawnIntervall: 1000,
+    spawnIntervall: 3000,
     debug: true,
     clearscreen: true,
     backgroundcolor: [13, 19, 73], // schönes blau: 13, 19, 73
@@ -43,7 +43,7 @@ class Machine extends defaultMachine {
         this.setFill(0, 0, 0);
         this.setStroke(0, 0, 0);
         this.setPosition(random(-width/2, width/2), random(-height/2, height/2)); // go to random pos;
-
+        this.setSize(50);
         const maxVelocity = 5;
         this.velocity = createVector(0, 0)
 
@@ -90,12 +90,13 @@ class Machine extends defaultMachine {
         // if (this.pos.x <= 0 || this.pos.x >= width) this.velocity.x *= -1;
         // if (this.pos.y <= 0 || this.pos.y >= height) this.velocity.y *= -1;
 
+        // this.setPosition(this.pos.x + this.velocity.x, this.pos.y + this.velocity.y);
         this.setPosition(
             constrain(this.pos.x + this.velocity.x, -width/2, width/2),
             constrain(this.pos.y + this.velocity.y, -height/2, height/2));
 
-        if (this.pos.x <= -width/2 || this.pos.x >= width/2) this.velocity.x *= -1;
-        if (this.pos.y <= -height/2 || this.pos.y >= height/2) this.velocity.y *= -1;
+        // if (this.pos.x <= -width/2 || this.pos.x >= width/2) this.velocity.x *= -1;
+        // if (this.pos.y <= -height/2 || this.pos.y >= height/2) this.velocity.y *= -1;
 
         // console.log("this.pos.x =" + this.pos.x);
         //console.log();
@@ -120,15 +121,22 @@ class Machine extends defaultMachine {
         var transparency = int(map(amp, 0, 1, 0, 255));
 
         //this.setFill(grayscale*88, grayscale*156, grayscale*168, transparency); //88, 156, 168
-        this.setFill(88, 156, 168, transparency); //88, 156, 168
+        this.setFill(255, 255, 255, transparency); //88, 156, 168
         
-        this.setStroke(88, 156, 168, transparency);
+        this.setStroke(255, 255, 255, 0);
 
         var waveX = int(map(this.pos.x, -width/2, width/2, 0, width-1));
         // console.log("waveX = " + waveX);
         var waveY = int(map(this.pos.y, -height/2, height/2, 0, height-1));
 
+        // if (previous[waveX] && waveY >= 0 && waveY < previous[waveX].length) {
+        //     previous[waveX][waveY] = 1000; //1000 ist cool
+        // }
         previous[waveX][waveY] = 1000; //1000 ist cool
+
+
+        // strokeWeight(3)
+        // ellipse(this.pos.x, this.pos.y, this.size.x, this.size.y)
     }
 
     onFinish() {
@@ -170,6 +178,9 @@ let modulationDepth = 80;
 
 let forces = [];
 
+let modes;
+
+
 function setup() {
     reverb = new p5.Reverb();
     reverb.amp(3);
@@ -196,14 +207,44 @@ function setup() {
     // forces.push(new Atractor(createVector(0, 0)));
     // forces.push(new Atractor(createVector(100, 200)));
 
+    modes = [{
+        color: [13, 19, 73],
+        blendMode: BLEND
+    // }, {
+    //     color: [0, 210, 255],
+    //     blendMode: SOFT_LIGHT
+    // }, {
+    //     color: [0, 255, 90],
+    //     blendMode: SOFT_LIGHT
+    // }, {
+    //     color: [13, 19, 73],
+    //     blendMode: DODGE
+    // }, {
+    //     color: [13, 19, 73],
+    //     blendMode: OVERLAY
+    }, {
+        color: [0, 0, 0],
+        blendMode: DIFFERENCE
+    // }, {
+    //     color: [28, 255, 95],
+    //     blendMode: DIFFERENCE
+    }, {
+        color: [28, 255, 95],
+        blendMode: EXCLUSION
+    }];
+
+    // const mode = modes[2]
+    // flatlandConfig.backgroundcolor = mode.color
+    // blendMode(mode.blendMode)
 }
 
 let lastAtractorAdded = 0;
+let lastModeChanged = 0;
 
 function draw() {
     if (millis() - lastAtractorAdded >= random(6000, 10000)) {
         if (random() > 0.5) {
-            forces.push(new Atractor(createVector(random(-width/2, width/2), random(-height/2, height/2))));
+            forces.push(new Atractor(createVector(random(-width/4, width/4), random(-height/4, height/4))));
         } else {
             forces = [];
         }
@@ -215,6 +256,17 @@ function draw() {
         for(let machine of flatland.machinesLocal) {
             machine.osc.freq(random(1, 800));
         } 
+    }
+
+    if (millis() - lastModeChanged >= random(12000, 17000)) {
+        let mode = modes[int(random(0, modes.length))];
+
+        console.log(mode);
+
+        flatlandConfig.backgroundcolor = mode.color
+        blendMode(mode.blendMode)
+
+        lastModeChanged = millis()
     }
 
     push();
