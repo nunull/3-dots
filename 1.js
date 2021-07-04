@@ -202,7 +202,12 @@ let lastAtractorAdded = 0;
 
 function draw() {
     if (millis() - lastAtractorAdded >= random(6000, 10000)) {
-        forces.push(new Atractor(createVector(random(-width/2, width/2), random(-height/2, height/2))));
+        if (random() > 0.5) {
+            forces.push(new Atractor(createVector(random(-width/2, width/2), random(-height/2, height/2))));
+        } else {
+            forces = [];
+        }
+
         lastAtractorAdded = millis();
 
         modulationDepth = random(10, 1000);
