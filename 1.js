@@ -15,7 +15,7 @@ var machineConfig = {
     maxCount: 3,
     minSize: 10,
     maxSize: 30,
-    lifetime: 20000,
+    lifetime: 10000,
     color1: [255, 0, 255],
     color1Opacity: 0.1,
     color2: [0, 255, 255],
@@ -74,6 +74,15 @@ class Machine extends defaultMachine {
             this.audioRoutingSetUp = true;
         }
 
+        let sum = createVector(0, 0)
+        for (let force of forces) {
+            sum.add(force.getForce(this))
+        }
+
+        // console.log('sum', sum)
+
+        this.velocity.add(sum)
+
         // this.setPosition(
         //     constrain(this.pos.x + this.velocity.x, 0, width),
         //     constrain(this.pos.y + this.velocity.y, 0, height));
@@ -88,7 +97,7 @@ class Machine extends defaultMachine {
         if (this.pos.x <= -width/2 || this.pos.x >= width/2) this.velocity.x *= -1;
         if (this.pos.y <= -height/2 || this.pos.y >= height/2) this.velocity.y *= -1;
 
-        console.log("this.pos.x =" + this.pos.x);
+        // console.log("this.pos.x =" + this.pos.x);
         //console.log();
 
 
@@ -124,6 +133,20 @@ class Machine extends defaultMachine {
 }
 
 
+class Atractor {
+    constructor(position) {
+        this.position = position;
+    }
+
+    getForce(machine) {
+        let force = p5.Vector.sub(this.position, machine.pos);
+        force.setMag(1);
+        // console.log('machine.position', machine.pos)
+        return force
+    }
+}
+
+
 
 
 let gui;
@@ -135,6 +158,8 @@ let rows;
 let current;
 let previous;
 let dampening = 0.99;
+
+let forces = [];
 
 function setup() {
     reverb = new p5.Reverb();
@@ -157,6 +182,10 @@ function setup() {
     flatland = new Flatland();
     initGui();
     initSocketIO(flatlandConfig.server);
+
+
+    forces.push(new Atractor(createVector(0, 0)));
+    forces.push(new Atractor(createVector(100, 200)));
 
 }
 
