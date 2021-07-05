@@ -143,6 +143,11 @@ class Machine extends defaultMachine {
         console.log('onFinish');
 
         this.osc.amp(0, 0.1);
+
+        //audio ausschalten, wenn eine maschine stirbt
+        this.osc.stop();
+        this.modOsc.stop();
+    
         
     }
 }
