@@ -50,10 +50,12 @@ class Machine extends defaultMachine {
         this.osc = new p5.Oscillator('sine');
         this.modOsc = new p5.Oscillator('sine');
         
-        this.osc.freq(440);        
+        this.osc.freq(440);
 
-        reverb.process(this.osc, 2, 2);
+        reverb.process(this.osc, 0, 2);
         this.modOsc.disconnect();
+
+        this.osc.amp(0);
 
         this.osc.start();
         this.modOsc.start();
@@ -112,8 +114,8 @@ class Machine extends defaultMachine {
         var amp = constrain(map(d, 100, 0, 0, 1), 0, 1);
         // console.log("d =" + d);
         this.modOsc.freq(d/2, 0.1);
-        this.modOsc.amp(amp*modulationDepth, 0.1);
-        this.osc.amp(amp*0.2, 0.1);
+        this.modOsc.amp(amp*modulationDepth, 0.2);
+        this.osc.amp(amp*0.2, 0.2);
 
         // generate grayscale depending from amplitude
         var grayscale = int(map(amp, 0, 1, 0, 255));
@@ -142,13 +144,13 @@ class Machine extends defaultMachine {
     onFinish() {
         console.log('onFinish');
 
-        this.osc.amp(0, 0.1);
+        this.osc.amp(0, 0.3);
 
-        //audio ausschalten, wenn eine maschine stirbt
-        this.osc.stop();
-        this.modOsc.stop();
-    
-        
+        setTimeout(() => {
+            //audio ausschalten, wenn eine maschine stirbt
+            this.osc.stop();
+            this.modOsc.stop();
+        }, 310)
     }
 }
 
