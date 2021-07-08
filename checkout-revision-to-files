@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ $# != 1 ]]; then
+	echo "usage: $0 <commit-ish>"
+	exit 1
+fi
+
+commitish="$1"
+
+i=1
+while [ -f $i.js ]; do
+	i=$(( i + 1 ))
+done
+
+if [ -f $i.html ]; then
+	echo "error: $i.html exist, even though $i.js does not exit"
+	exit 1
+fi
+
+echo "checking out 1.html and 1.js from $commitish to $i.html and $i.js"
+
+git cat-file -p "$commitish:1.html" > "$i.html"
+git cat-file -p "$commitish:1.js" > "$i.js"
