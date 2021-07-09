@@ -50,9 +50,9 @@ class Machine extends defaultMachine {
         this.osc = new p5.Oscillator('sine');
         this.modOsc = new p5.Oscillator('sine');
         
-        this.osc.freq(440);
+        this.osc.freq(40);
 
-        reverb.process(this.osc, 0, 2);
+        reverb.process(this.osc);
         this.modOsc.disconnect();
 
         this.osc.amp(0);
@@ -111,11 +111,16 @@ class Machine extends defaultMachine {
         d = int(abs(dist(this.pos.x, this.pos.y, next.pos.x, next.pos.y)));
         d = d%100+1;
 
+
+        var panning = map(this.pos.x / width, -0.5, 0.5, -1, 1);
+        // var panning = (this.pos.x / width) * 2;
+
         var amp = constrain(map(d, 100, 0, 0, 1), 0, 1);
         // console.log("d =" + d);
         this.modOsc.freq(d/2, 0.1);
         this.modOsc.amp(amp*modulationDepth, 0.2);
         this.osc.amp(amp*0.2, 0.2);
+        this.osc.pan(panning, 0.2);
 
         // generate grayscale depending from amplitude
         var grayscale = int(map(amp, 0, 1, 0, 255));
@@ -190,7 +195,8 @@ let modes;
 
 function setup() {
     reverb = new p5.Reverb();
-    reverb.amp(3);
+    reverb.set(4, 30);
+    reverb.amp(0.5);
     
     pixelDensity(1);
     createCanvas(windowWidth, windowHeight);
@@ -250,6 +256,8 @@ let lastModeChanged = 0;
 
 function draw() {
     if (millis() - lastAtractorAdded >= random(6000, 10000)) {
+        console.log('update atractor, modulationDepth and osc')
+
         if (random() > 0.5) {
             forces.push(new Atractor(createVector(random(-width/4, width/4), random(-height/4, height/4))));
         } else {
@@ -261,11 +269,13 @@ function draw() {
         modulationDepth = random(10, 1000);
 
         for(let machine of flatland.machinesLocal) {
-            machine.osc.freq(random(1, 800));
+            machine.osc.freq(random(1, 200));
         } 
     }
 
     if (millis() - lastModeChanged >= random(12000, 17000)) {
+        console.log('update mode')
+
         let mode = modes[int(random(0, modes.length))];
 
         console.log(mode);
