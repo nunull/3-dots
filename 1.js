@@ -195,7 +195,7 @@ let modes;
 
 function setup() {
     reverb = new p5.Reverb();
-    reverb.set(4, 30);
+    reverb.set(10, 2);
     reverb.amp(0.5);
     
     pixelDensity(1);
@@ -261,7 +261,22 @@ function draw() {
         if (random() > 0.5) {
             forces.push(new Atractor(createVector(random(-width/4, width/4), random(-height/4, height/4))));
         } else {
+            console.log('deleting all forces');
             forces = [];
+        }
+
+        if (random() > 0.7) {
+            console.log('deleting all machines')
+
+            flatland.autospawn = 0
+            // flatland.machinesLocal = []
+            for (let machine of flatland.machinesLocal) {
+                machine.setLifetime(0);
+            }
+
+            setTimeout(() => {
+                flatland.autospawn = 1
+            }, int(random(3000, 5000)))
         }
 
         lastAtractorAdded = millis();
